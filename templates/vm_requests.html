@@ -12,7 +12,6 @@
         <th>ID</th>
         <th>User</th>
         <th>VM Name</th>
-        <th>Category</th>
         <th>VMID</th>
         <th>Tier</th>
         
@@ -27,7 +26,6 @@
         <td>{{ req.id }}</td>
         <td>{{ req.user.username if req.user else 'N/A' }}</td>
         <td>{{ req.vm_name }}</td>
-        <td>{{ req.vm_category if req.vm_category else '-' }}</td>
         <td>{{ req.vmid if req.vmid else '-' }}</td>
         <td>{{ req.vm_tier }}</td>
         
@@ -48,7 +46,7 @@
         </td>
       </tr>
       {% else %}
-      <tr><td colspan="9">No VM requests found.</td></tr>
+      <tr><td colspan="8">No VM requests found.</td></tr>
       {% endfor %}
     </tbody>
   </table>

@@ -23,7 +23,9 @@ PROXMOX["node"] = "px1"
 # Whether to disable KVM for newly created VMs (useful for nested environments)
 PROXMOX["disable_kvm_by_default"] = True
 
+# Map VM tiers to cloud-init template VMIDs - update values to match your environment
 CLOUDINIT_TEMPLATES = {
-    'server': 101,
-    'service':110
+    'bronze': 201,
+    'silver': 202,
+    'gold': 203,
 }

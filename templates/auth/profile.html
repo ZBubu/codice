@@ -11,7 +11,6 @@
 		<tr>
 			<th>ID</th>
 			<th>VM Name</th>
-			<th>Category</th>
 			<th>Tier</th>
 			<th>VMID</th>
 			<th>Status</th>
@@ -22,13 +21,12 @@
 		<tr>
 			<td>{{ req.id }}</td>
 			<td>{{ req.vm_name }}</td>
-			<td>{{ req.vm_category if req.vm_category else '-' }}</td>
 			<td>{{ req.vm_tier }}</td>
 			<td>{{ req.vmid if req.vmid else '-' }}</td>			
 			<td>{{ req.status }}</td>
 		</tr>
 	{% else %}
-		<tr><td colspan="6">No VM requests</td></tr>
+		<tr><td colspan="5">No VM requests</td></tr>
 	{% endfor %}
 	</tbody>
 </table>

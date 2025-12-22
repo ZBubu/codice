@@ -77,7 +77,6 @@ class VMRequest(db.Model):
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
     vm_name = db.Column(db.String(100), nullable=False)
     vmid = db.Column(db.Integer, nullable=True)
-    vm_category = db.Column(db.String(50), nullable=True)
     vm_tier = db.Column(db.String(50), nullable=False)  # e.g., bronze, silver, gold
     status = db.Column(db.String(50), default='pending')  # pending, approved, rejected
     timestamp = db.Column(db.DateTime, default=datetime.datetime.utcnow)

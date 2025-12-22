@@ -33,13 +33,12 @@ def requestVM():
         vm_type = request.form.get('vm_type')
         vm_name_raw = request.form.get('vm_name')
         vm_name = sanitize_vm_name(vm_name_raw)
-        vm_category = request.form.get('vm_category')
-        if not vm_type or not vm_name or not vm_category:
-            flash('Please provide a VM name and select a VM type and category.')
+        if not vm_type or not vm_name:
+            flash('Please provide a VM name and select a VM type.')
             return redirect(url_for('default.requestVM'))
         if vm_name != (vm_name_raw or '').strip():
             flash(f'VM name sanitized to "{vm_name}"')
-        new_req = VMRequest(user_id=current_user.id, vm_name=vm_name, vm_tier=vm_type, vm_category=vm_category)
+        new_req = VMRequest(user_id=current_user.id, vm_name=vm_name, vm_tier=vm_type)
         db.session.add(new_req)
         db.session.commit()
         flash(f'VM request submitted: {vm_name} ({vm_type})')
@@ -91,7 +90,7 @@ def update_vm_request_status(req_id):
             access_password = secrets.token_urlsafe(12)
 
             # Pass credentials to the VM create call but avoid persisting them
-            vmid = create_vm(vmreq.vm_name, vmreq.vm_tier, vmreq.vm_category, ci_user=access_user, ci_password=access_password)
+            vmid = create_vm(vmreq.vm_name, vmreq.vm_tier, ci_user=access_user, ci_password=access_password)
         except Exception as e:
             vmreq.status = 'error'
             db.session.commit()

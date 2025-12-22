@@ -24,13 +24,13 @@ def _retry_api(callable_fn, *a, retries=3, backoff=2, **kw):
             raise
 
 
-def create_vm(vm_name, vm_type, vm_category=None, ci_user=None, ci_password=None):
+def create_vm(vm_name, vm_tier, ci_user=None, ci_password=None):
     """Create a VM on Proxmox and return the allocated vmid.
 
-    Parameters mirror the previous inline implementation.
+    Cloud-init templates are selected based on the VM tier (bronze/silver/gold).
     """
     proxmox = ProxmoxAPI(PROXMOX['host'], user=PROXMOX['user'], password=PROXMOX['password'], verify_ssl=PROXMOX['verify_ssl'])
-    cfg = VM_TYPES[vm_type]
+    cfg = VM_TYPES[vm_tier]
 
     # get next available vmid from cluster (with retries)
     vmid = _retry_api(proxmox.cluster.nextid.get)
@@ -56,9 +56,7 @@ def create_vm(vm_name, vm_type, vm_category=None, ci_user=None, ci_password=None
 
     # if a cloud-init template is available for this category, try to clone it
     cloned = False
-    template_vmid = None
-    if vm_category:
-        template_vmid = CLOUDINIT_TEMPLATES.get(vm_category)
+    template_vmid = CLOUDINIT_TEMPLATES.get(vm_tier)
     if template_vmid:
         try:
             clone_ret = _retry_api(
