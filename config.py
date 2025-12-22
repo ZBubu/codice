@@ -25,7 +25,7 @@ PROXMOX["disable_kvm_by_default"] = True
 
 # Map VM tiers to cloud-init template VMIDs - update values to match your environment
 CLOUDINIT_TEMPLATES = {
-    'bronze': 201,
-    'silver': 202,
-    'gold': 203,
+    'bronze': 110,
+    'silver': 111,
+    'gold': 112,
 }
