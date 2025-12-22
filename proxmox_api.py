@@ -1,3 +1,4 @@
+# NOTE: Portions of this file were generated or modified with the assistance of GitHub Copilot (a chatbot).
 from config import PROXMOX, VM_TYPES, CLOUDINIT_TEMPLATES
 import requests
 import time
@@ -9,19 +10,7 @@ LOG = logging.getLogger(__name__)
 
 proxmox = None
 
-def _retry_api(callable_fn, *a, retries=3, backoff=2, **kw):
-    """Retry a proxmox API call on transient network errors."""
-    last_exc = None
-    for attempt in range(1, retries + 1):
-        try:
-            return callable_fn(*a, **kw)
-        except (requests.exceptions.RequestException, TimeoutError) as e:
-            last_exc = e
-            LOG.warning('Proxmox API call failed (attempt %s/%s): %s', attempt, retries, e)
-            if attempt < retries:
-                time.sleep(backoff * attempt)
-                continue
-            raise
+# NOTE: removed _retry_api helper; calls now invoke the proxmox API methods directly.
 
 
 def create_vm(vm_name, vm_tier, ci_user=None, ci_password=None):
@@ -32,8 +21,8 @@ def create_vm(vm_name, vm_tier, ci_user=None, ci_password=None):
     proxmox = ProxmoxAPI(PROXMOX['host'], user=PROXMOX['user'], password=PROXMOX['password'], verify_ssl=PROXMOX['verify_ssl'])
     cfg = VM_TYPES[vm_tier]
 
-    # get next available vmid from cluster (with retries)
-    vmid = _retry_api(proxmox.cluster.nextid.get)
+    # get next available vmid from cluster
+    vmid = proxmox.cluster.nextid.get()
 
     node = PROXMOX.get('node', 'pve')
 
@@ -59,8 +48,7 @@ def create_vm(vm_name, vm_tier, ci_user=None, ci_password=None):
     template_vmid = CLOUDINIT_TEMPLATES.get(vm_tier)
     if template_vmid:
         try:
-            clone_ret = _retry_api(
-                proxmox.nodes(node).qemu(int(template_vmid)).clone.post,
+            clone_ret = proxmox.nodes(node).qemu(int(template_vmid)).clone.post(
                 newid=vmid,
                 name=vm_name,
                 full=1,
@@ -100,14 +88,14 @@ def create_vm(vm_name, vm_tier, ci_user=None, ci_password=None):
             if ci_password:
                 cfgpost['cipassword'] = ci_password
             if cfgpost:
-                _retry_api(proxmox.nodes(node).qemu(int(vmid)).config.post, **cfgpost)
+                proxmox.nodes(node).qemu(int(vmid)).config.post(**cfgpost)
             cloned = True
         except Exception:
             LOG.exception('Failed to clone template %s, falling back to full create', template_vmid)
 
     if not cloned:
         # send create request (with retries) and wait for task if present
-        create_ret = _retry_api(proxmox.nodes(node).qemu.create, **create_kwargs)
+        create_ret = proxmox.nodes(node).qemu.create(**create_kwargs)
         upid = None
         if isinstance(create_ret, dict):
             upid = create_ret.get('data') or create_ret.get('upid')
@@ -135,7 +123,7 @@ def create_vm(vm_name, vm_tier, ci_user=None, ci_password=None):
                 LOG.error('Create task %s finished with error: %s', upid, task_status)
 
     # start the VM (after creation) - Proxmox may take a moment
-    _retry_api(proxmox.nodes(node).qemu(int(vmid)).status.start.post)
+    proxmox.nodes(node).qemu(int(vmid)).status.start.post()
 
     return int(vmid)
     
@@ -157,7 +145,7 @@ def get_vm_guest_info(vmid, node=None, attempts=5, wait_seconds=5):
     for _ in range(attempts):
         try:
             # try to get network interfaces via guest agent
-            data = _retry_api(proxmox.nodes(node).qemu(int(vmid)).agent.get, 'network-get-interfaces')
+            data = proxmox.nodes(node).qemu(int(vmid)).agent.get('network-get-interfaces')
             # data format varies; look for first non-link-local IPv4
             for iface in data.get('result', data) if isinstance(data, dict) else data:
                 addrs = iface.get('ip-addresses', []) if isinstance(iface, dict) else []
@@ -166,7 +154,7 @@ def get_vm_guest_info(vmid, node=None, attempts=5, wait_seconds=5):
                     if ip and '.' in ip and not ip.startswith('169.254'):
                         # try to fetch hostname
                         try:
-                            hn = _retry_api(proxmox.nodes(node).qemu(int(vmid)).agent.get, 'get_hostname')
+                            hn = proxmox.nodes(node).qemu(int(vmid)).agent.get('get_hostname')
                             hostname = hn.get('result') if isinstance(hn, dict) else hn
                         except Exception:
                             hostname = None
@@ -177,7 +165,7 @@ def get_vm_guest_info(vmid, node=None, attempts=5, wait_seconds=5):
             continue
     # as fallback, check VM config for ipconfig0
     try:
-        cfg = _retry_api(proxmox.nodes(node).qemu(int(vmid)).config.get)
+        cfg = proxmox.nodes(node).qemu(int(vmid)).config.get()
         ipcfg = cfg.get('ipconfig0') if isinstance(cfg, dict) else None
         if ipcfg:
             # ipconfig0 looks like 'ip=192.168.1.100/24'
