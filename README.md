@@ -1,8 +1,9 @@
-.ENV
-SQLAlchemy options
-SQLALCHEMY_DATABASE_URI="sqlite:///labo1.db"
-SECRET_KEY="grandepanepanegrande1212121212121212"
 
-Proxmox user and password
-PXUSER="root@pam"
-PXPASS="Password&1"
+utente di prova: admin@example.com adminpassword
+## .env
+- SQLALCHEMY_DATABASE_URI: indirizzo del database
+- SECRET_KEY: Secret Key usata per flask login
+- PXUSER:email utente proxmox (root@pam) 
+- PXPASS: Password utente proxmox (Password&1)
+
+ 
