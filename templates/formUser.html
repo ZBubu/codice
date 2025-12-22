@@ -1,0 +1,53 @@
+<!-- formUser.html -->
+{% extends "base.html" %}
+
+{% block title %}Form {% endblock %}
+
+{% block content %}
+<h1>Aggiungi utente</h1>
+<form action="#" type="POST" id="submitUtente">
+    <label for="username">username:</label><br>
+    <input type="text" id="username"><br>
+
+    <label for="email">email:</label><br>
+    <input type="text" id="email"><br>
+
+    <label for="password">password:</label><br>
+    <input type="password" id="password"><br>
+    
+    <input type="submit">
+</form>
+
+    <script>
+  document.getElementById('submitUtente').addEventListener('submit', function(event) {
+/**
+ * The **`preventDefault()`** method of the Event interface tells the user agent that if the event does not get explicitly handled, 
+ * its default action should not be taken as it normally would be.
+ *
+ * [MDN Reference](https://developer.mozilla.org/docs/Web/API/Event/preventDefault)
+ */
+  event.preventDefault(); 
+
+  const user = document.getElementById('username').value;
+  const email = document.getElementById('email').value;
+  const password = document.getElementById('password').value;
+
+  const dati = 
+  {
+    username : user,
+    email : email,
+    password: password
+  }
+
+  fetch('http://localhost:5000/api/adduser', {  
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json'  // invio JSON
+    },
+    body: JSON.stringify(dati)
+  })
+  .then(response => response.json())  // supponendo che il server risponda in JSON
+});
+</script>
+
+{% endblock %}

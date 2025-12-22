@@ -1,0 +1,35 @@
+<!-- auth\profile.html -->
+{% extends "base.html" %}
+
+{% block title %}Flask Profile{% endblock %}
+
+{% block content %}
+<h1 class="title"> Welcome {{ name }} </h1>
+<h2>Your VM Requests</h2>
+<table class="table table-sm">
+	<thead>
+		<tr>
+			<th>ID</th>
+			<th>VM Name</th>
+			<th>Category</th>
+			<th>Tier</th>
+			<th>VMID</th>
+			<th>Status</th>
+		</tr>
+	</thead>
+	<tbody>
+	{% for req in current_user.vm_requests %}
+		<tr>
+			<td>{{ req.id }}</td>
+			<td>{{ req.vm_name }}</td>
+			<td>{{ req.vm_category if req.vm_category else '-' }}</td>
+			<td>{{ req.vm_tier }}</td>
+			<td>{{ req.vmid if req.vmid else '-' }}</td>			
+			<td>{{ req.status }}</td>
+		</tr>
+	{% else %}
+		<tr><td colspan="6">No VM requests</td></tr>
+	{% endfor %}
+	</tbody>
+</table>
+{% endblock %}

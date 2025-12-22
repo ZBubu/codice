@@ -1,0 +1,33 @@
+{% extends 'base.html' %}
+
+{% block title %}Request VM{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+	<h2>Request a VM</h2>
+	<p>Hello {{ name }}, choose a VM type and click Request.</p>
+	<form method="post" action="{{ url_for('default.requestVM') }}">
+		<div class="mb-3">
+			<label for="vm_name" class="form-label">VM Name</label>
+			<input type="text" class="form-control" id="vm_name" name="vm_name" placeholder="my-vm-01" required>
+		</div>
+		<div class="mb-3">
+			<label for="vm_category" class="form-label">VM Category</label>
+			<select class="form-select" id="vm_category" name="vm_category" required>
+				<option value="service">Service</option>
+				<option value="server">Server</option>
+			</select>
+		</div>
+		<div class="mb-3">
+			<label for="vm_type" class="form-label">VM Type</label>
+			<select class="form-select" id="vm_type" name="vm_type" required>
+				<option value="bronze">Bronze</option>
+				<option value="silver">Silver</option>
+				<option value="gold">Gold</option>
+			</select>
+		</div>
+		<button type="submit" class="btn btn-primary">Request VM</button>
+	</form>
+</div>
+{% endblock %}
+

@@ -1,0 +1,56 @@
+{% extends 'base.html' %}
+
+{% block title %}VM Requests{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+  <h2>VM Requests</h2>
+  <p>Only admins can view and change VM request statuses.</p>
+  <table class="table table-striped">
+    <thead>
+      <tr>
+        <th>ID</th>
+        <th>User</th>
+        <th>VM Name</th>
+        <th>Category</th>
+        <th>VMID</th>
+        <th>Tier</th>
+        
+        <th>Status</th>
+        <th>Requested At</th>
+        <th>Action</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for req in requests %}
+      <tr>
+        <td>{{ req.id }}</td>
+        <td>{{ req.user.username if req.user else 'N/A' }}</td>
+        <td>{{ req.vm_name }}</td>
+        <td>{{ req.vm_category if req.vm_category else '-' }}</td>
+        <td>{{ req.vmid if req.vmid else '-' }}</td>
+        <td>{{ req.vm_tier }}</td>
+        
+        <td>{{ req.status }}</td>
+        <td>{{ req.timestamp }}</td>
+        <td>
+          <form method="post" action="{{ url_for('default.update_vm_request_status', req_id=req.id) }}" class="d-inline-flex">
+            <select name="status" class="form-select form-select-sm me-2">
+              <option value="pending" {% if req.status=='pending' %}selected{% endif %}>pending</option>
+              <option value="approved" {% if req.status=='approved' %}selected{% endif %}>approved</option>
+              <option value="rejected" {% if req.status=='rejected' %}selected{% endif %}>rejected</option>
+              <option value="creating" {% if req.status=='creating' %}selected{% endif %}>creating</option>
+              <option value="created" {% if req.status=='created' %}selected{% endif %}>created</option>
+              <option value="error" {% if req.status=='error' %}selected{% endif %}>error</option>
+            </select>
+            <button class="btn btn-sm btn-primary" type="submit">Update</button>
+          </form>
+        </td>
+      </tr>
+      {% else %}
+      <tr><td colspan="9">No VM requests found.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}
