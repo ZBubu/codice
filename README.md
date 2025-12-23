@@ -1,4 +1,5 @@
 utente di prova: admin@example.com adminpassword
+
 utente per accedere alle VM: user Password&1
 ## .env
 - SQLALCHEMY_DATABASE_URI: indirizzo del database
