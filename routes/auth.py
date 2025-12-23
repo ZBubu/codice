@@ -53,6 +53,7 @@ def logout():
 def profile():
     return render_template('auth/profile.html', name=current_user.username)
 
+
 @app.route('/signup', methods=['GET'])
 def signup():
     return render_template('auth/signup.html')

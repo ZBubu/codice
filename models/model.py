@@ -76,12 +76,15 @@ class VMRequest(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
     vm_name = db.Column(db.String(100), nullable=False)
-    vmid = db.Column(db.Integer, nullable=True)
+    vmid = db.Column(db.Integer, nullable=True,unique=True)
     vm_tier = db.Column(db.String(50), nullable=False)  # e.g., bronze, silver, gold
     status = db.Column(db.String(50), default='pending')  # pending, approved, rejected
     timestamp = db.Column(db.DateTime, default=datetime.datetime.utcnow)
+    IP = db.Column(db.String(20), nullable=True,default="None")  # Indirizzo IP associato alla VM
 
     user = db.relationship('User', backref=db.backref('vm_requests', lazy=True))
+    
 
     def __repr__(self):
         return f'<VMRequest {self.id} by User {self.user_id}>'
+    

@@ -37,12 +37,6 @@ def create_vm(vm_name, vm_tier, ci_user=None, ci_password=None):
         ostype="l26",
     )
 
-    # support cloud-init user/password when requested (will add cloud-init drive)
-    if ci_user:
-        create_kwargs['ciuser'] = ci_user
-    if ci_password:
-        create_kwargs['cipassword'] = ci_password
-
     # if a cloud-init template is available for this category, try to clone it
     cloned = False
     template_vmid = CLOUDINIT_TEMPLATES.get(vm_tier)
@@ -127,52 +121,3 @@ def create_vm(vm_name, vm_tier, ci_user=None, ci_password=None):
 
     return int(vmid)
     
-
-
-def get_vm_guest_info(vmid, node=None, attempts=5, wait_seconds=5):
-    """Try to query the guest agent for hostname and IPv4 address.
-
-    Returns (hostname, ip) or (None, None) if not available.
-    """
-    proxmox = ProxmoxAPI(
-        PROXMOX["host"],
-        user=PROXMOX["user"],
-        password=PROXMOX["password"],
-        verify_ssl=PROXMOX["verify_ssl"],
-        timeout=PROXMOX.get('timeout', 30),
-    )
-    node = node or PROXMOX.get('node', 'pve')
-    for _ in range(attempts):
-        try:
-            # try to get network interfaces via guest agent
-            data = proxmox.nodes(node).qemu(int(vmid)).agent.get('network-get-interfaces')
-            # data format varies; look for first non-link-local IPv4
-            for iface in data.get('result', data) if isinstance(data, dict) else data:
-                addrs = iface.get('ip-addresses', []) if isinstance(iface, dict) else []
-                for addr in addrs:
-                    ip = addr.get('ip-address') or addr.get('ip')
-                    if ip and '.' in ip and not ip.startswith('169.254'):
-                        # try to fetch hostname
-                        try:
-                            hn = proxmox.nodes(node).qemu(int(vmid)).agent.get('get_hostname')
-                            hostname = hn.get('result') if isinstance(hn, dict) else hn
-                        except Exception:
-                            hostname = None
-                        return (hostname, ip)
-        except Exception:
-            # try again after waiting
-            time.sleep(wait_seconds)
-            continue
-    # as fallback, check VM config for ipconfig0
-    try:
-        cfg = proxmox.nodes(node).qemu(int(vmid)).config.get()
-        ipcfg = cfg.get('ipconfig0') if isinstance(cfg, dict) else None
-        if ipcfg:
-            # ipconfig0 looks like 'ip=192.168.1.100/24'
-            parts = ipcfg.split('=')
-            if len(parts) == 2:
-                ip = parts[1].split('/')[0]
-                return (cfg.get('name') if isinstance(cfg, dict) else None, ip)
-    except Exception:
-        pass
-    return (None, None)

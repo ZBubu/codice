@@ -57,6 +57,38 @@ def vm_requests():
     requests = db.session.execute(stmt).scalars().all()
     return render_template('vm_requests.html', requests=requests)
 
+#Endpoint per aggiungere l'indirizzo IP associato alla VM
+#la richiesta arriva tramite hookscript all'avvio della VM richiesta dall'utente.
+@app.route("/addip", methods=["POST"])
+def add_ip():
+    data = request.get_json(silent=True)
+
+    if not data:
+        return jsonify({"error": "JSON mancante"}), 400
+
+    vmid2 = data.get("vmid")
+    ip2 = data.get("ip")
+
+    if not vmid2 or not ip2:
+        return jsonify({"error": "vmid o ip mancanti"}), 400
+
+    stmt = db.select(VMRequest).filter_by(vmid=vmid2).scalar_one_or_none()
+    request = db.session.execute(stmt).scalars()
+    if not request:
+        return jsonify({"error": "Richiesta VM non trovata"}), 404
+    else:
+        request.ip = ip2
+        db.session.commit()
+
+
+
+    return jsonify({
+        "status": "ok",
+        "vmid": vmid2,
+        "ip": ip2
+    }), 200
+
+
 
 @app.route('/admin/vm_requests/<int:req_id>/status', methods=['POST'])
 @login_required
@@ -72,13 +104,6 @@ def update_vm_request_status(req_id):
     if not vmreq:
         flash('VM request not found')
         return redirect(url_for('default.vm_requests'))
-        # validate vm_name again before enqueue (in case it was edited later)
-        vmreq.vm_name = sanitize_vm_name(vmreq.vm_name)
-        if not vmreq.vm_name:
-            flash('Sanitized VM name invalid; please edit the request and retry.')
-            vmreq.status = 'pending'
-            db.session.commit()
-            return redirect(url_for('default.vm_requests'))
     # handle approved -> trigger Proxmox VM creation
     if new_status == 'approved':
         vmreq.status = 'creating'
@@ -98,14 +123,6 @@ def update_vm_request_status(req_id):
             flash(f'Failed to create VM: {e}')
             return redirect(url_for('default.vm_requests'))
         vmreq.vmid = vmid
-        # try to fetch guest info (do not persist sensitive details; log instead)
-        try:
-            from proxmox_api import get_vm_guest_info
-            hostname, ip = get_vm_guest_info(vmid)
-            if hostname or ip:
-                current_app.logger.info('VM %s guest info: hostname=%s ip=%s', vmid, hostname, ip)
-        except Exception:
-            current_app.logger.exception('Could not fetch guest info')
         vmreq.status = 'created'
         db.session.commit()
         from config import PROXMOX as _PROXMOX

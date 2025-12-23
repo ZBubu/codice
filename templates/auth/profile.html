@@ -14,6 +14,7 @@
 			<th>Tier</th>
 			<th>VMID</th>
 			<th>Status</th>
+			<th>Ip address</th>
 		</tr>
 	</thead>
 	<tbody>
@@ -24,6 +25,7 @@
 			<td>{{ req.vm_tier }}</td>
 			<td>{{ req.vmid if req.vmid else '-' }}</td>			
 			<td>{{ req.status }}</td>
+			<td>{{ req.ip }}</td>
 		</tr>
 	{% else %}
 		<tr><td colspan="5">No VM requests</td></tr>
