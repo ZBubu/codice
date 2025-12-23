@@ -1,4 +1,5 @@
 import os
+from sqlite3 import OperationalError
 from flask import Flask, render_template, redirect, url_for, request
 from dotenv import load_dotenv
 from flask_migrate import Migrate
@@ -17,7 +18,10 @@ app.register_blueprint(bp_default)
 app.register_blueprint(bp_auth, url_prefix="/auth")
 db.init_app(app)
 with app.app_context():
-     init_db()
+     try:
+        init_db()
+     except OperationalError:
+           print("DB non ancora inizializzato, skip init_db()")
 
 migrate = Migrate(app, db)
 login_manager = LoginManager()
